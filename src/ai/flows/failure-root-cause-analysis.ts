@@ -29,22 +29,23 @@ const prompt = ai.definePrompt({
   name: 'failureRootCausePrompt',
   input: {schema: FailureRootCauseInputSchema},
   output: {schema: FailureRootCauseOutputSchema},
-  prompt: `You are an expert maintenance engineer. You are analyzing the potential failure of machine {{machineId}}. Based on the provided feature importances, suggest the most probable cause of the failure.
+  prompt: `You are an expert maintenance engineer for an advanced industrial manufacturing facility. You are analyzing the potential failure of machine {{machineId}}.
 
-Feature Importances:
+Your task is to analyze the provided feature importance scores from a predictive maintenance model and suggest the most probable root cause for the equipment's failure.
+
+Here are the feature importances derived from sensor readings and machine status:
 {{#each featureImportances}}
-  {{@key}}: {{@value}}
+- '{{@key}}': {{@value}}
 {{/each}}
 
-Consider the following about the features:
-* 'Air temperature [K]' - ambient air temperature
-* 'Process temperature [K]' - temperature of a key industrial process
-* 'Rotational speed [rpm]' - speed of a rotating element
-* 'Torque [Nm]' - rotational force applied to a rotating element
-* 'Tool wear [min]' - amount of wear on a tool.  High tool wear can indicate machine malfunction.
-* Other derived features
+To aid your analysis, here is a description of each feature:
+* 'Air temperature [K]': The ambient air temperature in Kelvin around the machine.
+* 'Process temperature [K]': The temperature in Kelvin of the key industrial process the machine is performing. Significant deviations can indicate cooling system failure or process abnormalities.
+* 'Rotational speed [rpm]': The speed of a critical rotating component, measured in revolutions per minute. Unusually high or low speeds, or high variability, can point to motor or power supply issues.
+* 'Torque [Nm]': The rotational force in Newton-meters applied by the component. Higher than normal torque often indicates increased friction, load, or mechanical resistance. This is a strong indicator of mechanical wear or failure.
+* 'Tool wear [min]': The accumulated wear on the machine's primary tool, measured in minutes of usage. High tool wear is a direct indicator of tool degradation and can lead to poor quality output or machine malfunction if not addressed.
 
-What is the probable cause of the failure?`,
+Based on the feature with the highest importance score, provide a concise and clear probable cause for the failure. Explain your reasoning in one or two sentences. For example, if 'Torque [Nm]' is the highest, a probable cause could be "Increased friction and mechanical strain, likely due to component wear or lubrication failure."`,
 });
 
 const analyzeFailureRootCauseFlow = ai.defineFlow(

@@ -12,7 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const HistoricalAnalysisToolInputSchema = z.object({
-  predictionData: z.string().describe('Historical prediction data in JSON format, including actual and predicted values.'),
+  predictionData: z.string().describe('Historical prediction data in JSON format, as an array of objects with "actual" and "predicted" numbers (0 for no failure, 1 for failure).'),
   significanceLevel: z.number().default(0.05).describe('The statistical significance level to use for evaluation (e.g., 0.05 for 95% confidence).'),
   minimumDataPoints: z.number().default(30).describe('The minimum number of data points required to perform a statistically significant evaluation.'),
 });
@@ -31,19 +31,34 @@ export async function historicalAnalysisTool(input: HistoricalAnalysisToolInput)
 
 const historicalAnalysisToolPrompt = ai.definePrompt({
   name: 'historicalAnalysisToolPrompt',
-  input: {schema: HistoricalAnalysisToolInputSchema},
-  output: {schema: HistoricalAnalysisToolOutputSchema},
-  prompt: `You are an expert data analyst responsible for evaluating the historical performance of a predictive model.
+  input: {schema: z.object({
+    predictionData: z.array(z.object({actual: z.number(), predicted: z.number()})),
+    significanceLevel: z.number(),
+    minimumDataPoints: z.number(),
+  })},
+  output: {schema: z.object({
+    analysisResult: z.string().describe('A summary of the historical prediction analysis, including statistical significance evaluation and warnings if data is insufficient.'),
+  })},
+  prompt: `You are an expert data analyst responsible for evaluating the historical performance of a predictive maintenance model.
 
-  Analyze the provided historical prediction data to determine if there is sufficient data to evaluate the model with acceptable statistical significance.
-  Consider the significance level and minimum data points provided.
+Analyze the provided historical prediction data. The data consists of actual outcomes and model predictions, where 1 indicates a failure and 0 indicates normal operation.
 
-  If the data is insufficient, provide a warning message indicating that the evaluation may not be reliable.
-  Otherwise, provide a summary of the analysis, including key statistical metrics (e.g., accuracy, precision, recall, F1-score).
+Based on the data, calculate the following metrics:
+- True Positives (TP): Correctly predicted failures.
+- False Positives (FP): Incorrectly predicted failures (Type I error).
+- True Negatives (TN): Correctly predicted normal operations.
+- False Negatives (FN): Missed failures (Type II error).
+- Accuracy: (TP + TN) / (Total)
+- Precision: TP / (TP + FP)
+- Recall (Sensitivity): TP / (TP + FN)
+- F1-Score: 2 * (Precision * Recall) / (Precision + Recall)
 
-  Historical Prediction Data: {{{predictionData}}}
-  Significance Level: {{{significanceLevel}}}
-  Minimum Data Points: {{{minimumDataPoints}}}
+Provide a summary of these metrics. Then, offer a brief interpretation of the model's performance based on these results. For example, a high recall is critical in predictive maintenance to avoid missing failures, even at the cost of some false positives.
+
+Historical Prediction Data:
+{{#each predictionData}}
+- Actual: {{actual}}, Predicted: {{predicted}}
+{{/each}}
   `,
 });
 
@@ -54,35 +69,47 @@ const historicalAnalysisToolFlow = ai.defineFlow(
     outputSchema: HistoricalAnalysisToolOutputSchema,
   },
   async input => {
+    let parsedData;
     try {
-      // Parse the prediction data from JSON string to a JavaScript object
-      const predictionData = JSON.parse(input.predictionData);
-
-      // Check if the data is an array and has enough data points
-      if (!Array.isArray(predictionData) || predictionData.length < input.minimumDataPoints) {
-        return {
-          analysisResult: `Insufficient data available.  At least ${input.minimumDataPoints} data points are required for a reliable evaluation.`, 
-          isSufficientData: false,
-        };
-      }
-
-      const {output} = await historicalAnalysisToolPrompt(input);
-      // The prompt expects isSufficientData to be set, but it's not in the prompt's responsibility.
-      // So we call the prompt and then augment the output.
-      if (output) {
-        output.isSufficientData = true;
-        return output;
-      }
-      // if for some reason the output is null, we should return a default value
+      parsedData = JSON.parse(input.predictionData);
+    } catch (error: any) {
+      console.error("Error parsing prediction data:", error);
       return {
-        analysisResult: 'Analysis could not be completed.',
+        analysisResult: `Failed to parse prediction data. Please ensure it is valid JSON. Error: ${error.message}`,
         isSufficientData: false,
       };
-    } catch (error: any) {
-      console.error("Error during historical analysis:", error);
+    }
+
+    if (!Array.isArray(parsedData) || parsedData.length < input.minimumDataPoints) {
       return {
-        analysisResult: `An error occurred during analysis: ${error.message || 'Unknown error'}. Please check the prediction data format.`,
+        analysisResult: `Insufficient data available. At least ${input.minimumDataPoints} data points are required for a reliable evaluation. You provided ${parsedData.length}.`,
         isSufficientData: false,
+      };
+    }
+
+    try {
+      const {output} = await historicalAnalysisToolPrompt({
+        predictionData: parsedData,
+        significanceLevel: input.significanceLevel,
+        minimumDataPoints: input.minimumDataPoints,
+      });
+
+      if (output) {
+        return {
+          analysisResult: output.analysisResult,
+          isSufficientData: true,
+        };
+      }
+      
+      return {
+        analysisResult: 'Analysis could not be completed by the AI model.',
+        isSufficientData: true, // Data was sufficient, but model failed
+      };
+    } catch (error: any) {
+      console.error("Error during historical analysis AI call:", error);
+      return {
+        analysisResult: `An error occurred during AI analysis: ${error.message || 'Unknown error'}.`,
+        isSufficientData: true, // Data was sufficient, but model failed
       };
     }
   }
