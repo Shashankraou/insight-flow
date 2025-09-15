@@ -9,16 +9,17 @@ import {
 
 type SensorChartProps = {
   data: { name: string; value: number }[];
+  color: string;
 };
 
-const chartConfig = {
-  value: {
-    label: "Value",
-    color: "hsl(var(--primary))",
-  },
-} satisfies ChartConfig;
+export function SensorChart({ data, color }: SensorChartProps) {
+  const chartConfig = {
+    value: {
+      label: "Value",
+      color: color,
+    },
+  } satisfies ChartConfig;
 
-export function SensorChart({ data }: SensorChartProps) {
   return (
     <ChartContainer config={chartConfig} className="h-24 w-full">
       <AreaChart
@@ -44,6 +45,7 @@ export function SensorChart({ data }: SensorChartProps) {
           axisLine={false}
           tickMargin={8}
           tickCount={3}
+          domain={['dataMin - 5', 'dataMax + 5']}
         />
         <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
         <Area

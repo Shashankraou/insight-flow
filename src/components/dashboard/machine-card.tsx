@@ -12,19 +12,20 @@ import { StatusBadge } from "./status-badge";
 import { SensorChart } from "./sensor-chart";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Thermometer, Gauge, Drill, Settings2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type MachineCardProps = {
   machine: Machine;
 };
 
 export function MachineCard({ machine }: MachineCardProps) {
-  let progressColor = "bg-green-500";
-  if (machine.riskScore > 80) {
-    progressColor = "bg-destructive";
-  } else if (machine.riskScore > 50) {
-    progressColor = "bg-yellow-500";
-  }
+  const riskColor =
+    machine.riskScore > 80
+      ? "text-destructive"
+      : machine.riskScore > 50
+      ? "text-yellow-500"
+      : "text-primary";
   
   return (
     <Card className="flex flex-col">
@@ -42,20 +43,39 @@ export function MachineCard({ machine }: MachineCardProps) {
             <div>
                 <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-medium">Risk Score</span>
-                    <span className="text-sm font-bold">{machine.riskScore}%</span>
+                    <span className={`text-sm font-bold ${riskColor}`}>{machine.riskScore}%</span>
                 </div>
-                <Progress value={machine.riskScore} indicatorClassName={progressColor} />
+                <Progress value={machine.riskScore} />
             </div>
             <div>
                 <h4 className="text-sm font-medium mb-2">Live Sensor Data</h4>
-                <SensorChart data={machine.sensors.temperature} />
+                 <Tabs defaultValue="temperature" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4 h-9">
+                    <TabsTrigger value="temperature" className="p-1.5"><Thermometer className="w-4 h-4" /></TabsTrigger>
+                    <TabsTrigger value="torque" className="p-1.5"><Gauge className="w-4 h-4"/></TabsTrigger>
+                    <TabsTrigger value="rotation" className="p-1.5"><Settings2 className="w-4 h-4" /></TabsTrigger>
+                    <TabsTrigger value="wear" className="p-1.5"><Drill className="w-4 h-4" /></TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="temperature">
+                    <SensorChart data={machine.sensors.temperature} color="hsl(var(--chart-2))" />
+                  </TabsContent>
+                  <TabsContent value="torque">
+                    <SensorChart data={machine.sensors.torque} color="hsl(var(--chart-3))"/>
+                  </TabsContent>
+                  <TabsContent value="rotation">
+                    <SensorChart data={machine.sensors.rotation} color="hsl(var(--chart-4))" />
+                  </TabsContent>
+                  <TabsContent value="wear">
+                    <SensorChart data={machine.sensors.wear} color="hsl(var(--chart-5))"/>
+                  </TabsContent>
+                </Tabs>
             </div>
         </div>
       </CardContent>
       <CardFooter>
         <Button asChild variant="outline" size="sm" className="w-full">
-          <Link href="#">
-            View Details <ArrowRight className="ml-2 h-4 w-4" />
+          <Link href={`/analysis/failure-root-cause?machine=${machine.id}`}>
+            Analyze Failure <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </CardFooter>
