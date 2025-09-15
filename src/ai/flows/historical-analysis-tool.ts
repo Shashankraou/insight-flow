@@ -81,8 +81,8 @@ const historicalAnalysisToolFlow = ai.defineFlow(
     } catch (error: any) {
       console.error("Error during historical analysis:", error);
       return {
-        analysisResult: `An error occurred during analysis: ${error.message || 'Unknown error'}. Please check the prediction data format.`, // include error message
-        isSufficientData: false, // data is not sufficient due to error
+        analysisResult: `An error occurred during analysis: ${error.message || 'Unknown error'}. Please check the prediction data format.`,
+        isSufficientData: false,
       };
     }
   }
