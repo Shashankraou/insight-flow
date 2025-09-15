@@ -67,7 +67,17 @@ const historicalAnalysisToolFlow = ai.defineFlow(
       }
 
       const {output} = await historicalAnalysisToolPrompt(input);
-      return output!;
+      // The prompt expects isSufficientData to be set, but it's not in the prompt's responsibility.
+      // So we call the prompt and then augment the output.
+      if (output) {
+        output.isSufficientData = true;
+        return output;
+      }
+      // if for some reason the output is null, we should return a default value
+      return {
+        analysisResult: 'Analysis could not be completed.',
+        isSufficientData: false,
+      };
     } catch (error: any) {
       console.error("Error during historical analysis:", error);
       return {

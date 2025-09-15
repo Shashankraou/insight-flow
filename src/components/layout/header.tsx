@@ -1,7 +1,6 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { getToolkitDataBySlug } from '@/lib/toolkit-data';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,23 +18,12 @@ const staticTitles: Record<string, string> = {
   '/analysis/historical': 'Historical Analysis',
 };
 
-function KebabToTitleCase(str: string) {
-  return str.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-}
-
-
 export function AppHeader() {
   const pathname = usePathname();
   
   let title = 'InsightFlow';
   if (staticTitles[pathname]) {
     title = staticTitles[pathname];
-  } else if (pathname.startsWith('/toolkit/')) {
-    const slug = pathname.split('/')[2];
-    const toolkitPage = getToolkitDataBySlug(slug);
-    if (toolkitPage) {
-      title = toolkitPage.title;
-    }
   }
 
   return (

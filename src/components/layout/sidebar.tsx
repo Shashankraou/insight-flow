@@ -16,28 +16,16 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   BrainCircuit,
   Wrench,
   History,
-  Library,
-  BarChart2,
-  TestTube2,
-  FlaskConical,
-  Sigma,
-  FileText,
-  Network,
-  ThumbsUp,
-  AreaChart,
   LifeBuoy,
   Settings,
 } from 'lucide-react';
 import { Logo } from '../icons/logo';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
-import { cn } from '@/lib/utils';
-import { toolkitPages } from '@/lib/toolkit-data';
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -87,31 +75,6 @@ export function AppSidebar() {
                         </Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
-                  </SidebarMenuSub>
-              </CollapsibleContent>
-            </SidebarGroup>
-          </Collapsible>
-
-          <Collapsible asChild>
-            <SidebarGroup>
-              <SidebarGroupLabel asChild>
-                  <CollapsibleTrigger className='w-full justify-start data-[state=open]:bg-sidebar-accent'>
-                    <Library />
-                    <span>DS Toolkit</span>
-                  </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              <CollapsibleContent asChild>
-                  <SidebarMenuSub>
-                    {toolkitPages.map((page) => (
-                      <SidebarMenuSubItem key={page.slug}>
-                        <SidebarMenuSubButton asChild isActive={pathname === `/toolkit/${page.slug}`}>
-                            <Link href={`/toolkit/${page.slug}`}>
-                                <page.icon />
-                                <span>{page.shortTitle}</span>
-                            </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
                   </SidebarMenuSub>
               </CollapsibleContent>
             </SidebarGroup>
