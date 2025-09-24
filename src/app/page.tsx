@@ -1,8 +1,9 @@
 import { MachineCard } from "@/components/dashboard/machine-card";
-import { machines } from "@/lib/data";
+import { loadMachinesData } from "@/lib/data-loader";
 import { AlertTriangle, CheckCircle, Construction, HardHat } from "lucide-react";
 
 export default function DashboardPage() {
+  const machines = loadMachinesData();
   const highRiskMachines = machines.filter(m => m.status === 'Failure imminent').length;
   const warningMachines = machines.filter(m => m.status === 'Warning').length;
 
