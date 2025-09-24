@@ -53,6 +53,13 @@ export const loadMachinesData = (): Machine[] => {
         wear: generateSensorData(parseFloat(row['Tool wear [min]']), 20, 20),
       },
       featureImportances: { 'Torque [Nm]': 0.45, 'Rotational speed [rpm]': 0.25, 'Tool wear [min]': 0.15, 'Process temperature [K]': 0.1, 'Air temperature [K]': 0.05 },
+      failureType: {
+        twf: row['TWF'] === '1',
+        hdf: row['HDF'] === '1',
+        pwf: row['PWF'] === '1',
+        osf: row['OSF'] === '1',
+        rnf: row['RNF'] === '1',
+      },
     };
     return machine;
   });
