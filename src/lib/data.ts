@@ -18,4 +18,11 @@ export type Machine = {
     wear: { name: string, value: number }[];
   };
   featureImportances: Record<string, number>;
+  failureType?: {
+    twf: boolean;
+    hdf: boolean;
+    pwf: boolean;
+    osf: boolean;
+    rnf: boolean;
+  };
 };
